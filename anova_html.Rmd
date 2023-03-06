@@ -113,3 +113,9 @@ As we can see, the F value of 73.526 is greater than the critical value of 0.576
 From the calculations above, we can conclude that because the F-Statistic value is greater than the critical value, we can reject the null hypothesis. Which means that at least one average travel speed group is not equal to the others. Possible reasons could be a difference of driving infrastructure in suburban areas such as Scarborough and Etobicoke versus in areas with a higher population density such as seen in Toronto Center. 
 
 That being said, we must acknowledge that although we have calculated the F statistic and determined that it is statistically significant, we don’t know which ward(s) have a speed average significantly above/below the mean of the others. It could be just one, or it could be multiple. Furthermore, the calculations do not provide us the context as to what specific wards and infrastructure the values represent. Thus, there is still a need for further analysis. 
+
+## References
+
+ "2016 travel speed and performance measure-car / 2016 Vitesse de ...." 8 Apr. 2019, https://icorridor-mto-on-ca.hub.arcgis.com/datasets/0575577257da451f8b4b4097f910962e_0/about. Accessed 5 Mar. 2023.
+
+"Open Data - City of Toronto." https://www.toronto.ca/city-government/data-research-maps/open-data/. Accessed 5 Mar. 2023.
