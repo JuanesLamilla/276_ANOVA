@@ -1,1 +1,1 @@
-# 276_ANOVA
+# GGR276 Hypothesis Testing: ANOVA
