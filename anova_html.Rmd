@@ -1,0 +1,115 @@
+---
+title: "GGR276 Hypothesis Testing: ANOVA"
+author: "Juan Lamilla, Nikhil Tan, Jinghong Liang, Remneet Brar, Qian Chi"
+date: "2023-03-06"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+library(ggpubr)
+library(moments)
+library(dplyr)
+library(ggplot2)
+library(car)
+```
+
+
+## Introduction
+
+Over time, there has been greater emphasis on efficiency. This is especially true with advancements in technology and infrastructure. Therefore, we have decided to write a report on the different travel speeds at different roads in the different wards in Toronto to gain a better understanding as to why certain wards may enable faster roads. 
+
+With this, we have created both a null and alternate hypothesis:
+
+H~0~: There is no relationship between the average travel speed and the Toronto wards or, in other words, the average travel speed is the same across the different wards of Toronto. 
+
+H~A~: At least one average travel speed group (ward) is not equal to the others.
+
+If there is a statistically significant relationship between the ward and the vehicle travel speed, we can then begin to examine how urban design, planning, and public policy can affect vehicle speeds. 
+
+
+## Data gathered 
+
+We collected “Average car travel speed and performance indices” data from the Ontario’s data library in 2016. There were a total of 142,421 data points containing variables such as the average travel speed, average travel time and delays during the AM or PM timing of the day. 
+
+We had decided to specifically look at the ATS_PM (Average Travel Speed in PM) and compare it to another data set containing the city wards of Toronto. Using the pairwise intersect tool in ArcGIS Pro, we geographically matched the various roads and their corresponding speeds with data of ward boundaries provided by the City of Toronto. The exported data then matched each road with the ward it resided in. 
+
+![](Layout.png)
+Thus, the level of measurement for our variables was:
+ATS_PM (Interval), City wards of Toronto (Nominal)
+
+This data was loaded into R for further analysis.
+
+```{r loading, show_col_types = FALSE}
+wards_speeds <- read_csv("wards_speeds.csv")
+data_filtered <- wards_speeds %>% select(FID_WARD_WGS84, ATS_PM)
+summary(data_filtered$ATS_PM)
+```
+
+It was with this data set that we checked through the assumptions of the one-way ANOVA test to ensure its compatibility:
+
+#### 1: Data are from a randomly selected, unbiased sample of a population.
+
+The data set collected from the Ontario data library can be assumed to be unbiased and randomly selected, as they collected the data from the use of GPS from various different cars. 
+
+#### 2: Dependent variable is an approximate normal distribution.
+
+As we can see from plotting the data (below), the data set was not initially normally distributed and instead was positively skewed.
+
+```{r original}
+hist(data_filtered$ATS_PM)
+```
+
+However, we square rooted the data to aid in the linearity and removed all the data points where the average speed was 0. This left the data as (close to) normally distributed. 
+
+```{r normally}
+data_filtered$ATS_PM_sqrt <- sqrt(data_filtered$ATS_PM)
+df2<-data_filtered[!(data_filtered$ATS_PM_sqrt==0),]
+
+hist(df2$ATS_PM_sqrt)
+qqPlot(df2$ATS_PM_sqrt,
+       id = FALSE
+) # This QQ plot plots the points alongside a reference line of normality. As we can see, the points more or less fall along this line.
+```
+
+#### 3: The groups are independent from each other. 
+
+#### 4: Each group has roughly equal variances.
+
+To check this, we create boxplots for each ward. As we can see below, each box is similarly sized with similarly sized whiskers. This means each group has roughly equal variances.
+
+```{r box}
+boxplot(ATS_PM_sqrt ~ FID_WARD_WGS84,
+        data = df2
+)
+```
+
+Thus all assumptions were met and we can conduct an ANOVA test.
+
+## ANOVA Test
+
+Using both the average travel speed and the city ward data, we were able to calculate the F-statistics and run a comparison to see if there is any statistical significance between the 2 variables. 
+
+```{r anova}
+oneway.test(ATS_PM_sqrt ~ FID_WARD_WGS84,
+            data = df2,
+            var.equal = TRUE
+)
+```
+Using the data provided by the one-way ANOVA test above, we can calculate the critical value with the command below:
+
+```{r crit}
+qf(0.05, df1=24, df2=10385, lower.tail=TRUE)
+```
+
+As we can see, the F value of 73.526 is greater than the critical value of 0.5768 and the p-value is well below 0.05.
+
+From the calculations above, we can conclude that because the F-Statistic value is greater than the critical value, we can reject the null hypothesis. Which means that at least one average travel speed group is not equal to the others. Possible reasons could be a difference of driving infrastructure in suburban areas such as Scarborough and Etobicoke versus in areas with a higher population density such as seen in Toronto Center. 
+
+That being said, we must acknowledge that although we have calculated the F statistic and determined that it is statistically significant, we don’t know which ward(s) have a speed average significantly above/below the mean of the others. It could be just one, or it could be multiple. Furthermore, the calculations do not provide us the context as to what specific wards and infrastructure the values represent. Thus, there is still a need for further analysis. 
